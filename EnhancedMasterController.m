@@ -339,19 +339,30 @@ classdef EnhancedMasterController < handle
         end
         
         function network_results = run_enhanced_network_tests(obj, num_passengers, duration_hours)
-            % Enhanced network testing
+            % Enhanced network testing with dual gate metro simulation
             
             network_results = struct();
             
             fprintf('🚊 Multi-Modal Network Simulation...\n');
             
             % Enhanced passenger distribution
-            metro_passengers = round(num_passengers * 0.45); % Increased metro usage
-            bus_passengers = round(num_passengers * 0.45);   % Balanced bus usage
+            metro_passengers = round(num_passengers * 0.45); % Metro usage
+            bus_passengers = round(num_passengers * 0.45);   % Bus usage
             launch_passengers = round(num_passengers * 0.10); % Launch usage
             
-            fprintf('   🚇 Metro simulation: %d passengers\n', metro_passengers);
-            metro_results = obj.simulate_enhanced_transport_mode('metro', metro_passengers, duration_hours);
+            % Initialize dual gate metro system for realistic simulation
+            fprintf('   🚇 Metro simulation: %d passengers (with dual gate system)\n', metro_passengers);
+            try
+                dual_gate_system = DualGateMetroSystem();
+                fprintf('      💡 Dual gate metro system initialized\n');
+                
+                % Run dual gate metro simulation
+                metro_results = obj.simulate_dual_gate_metro(dual_gate_system, metro_passengers, duration_hours);
+                
+            catch metro_error
+                fprintf('      ⚠️ Dual gate simulation error, using fallback\n');
+                metro_results = obj.simulate_enhanced_transport_mode('metro', metro_passengers, duration_hours);
+            end
             
             fprintf('   🚌 Bus simulation: %d passengers\n', bus_passengers);
             bus_results = obj.simulate_enhanced_transport_mode('bus', bus_passengers, duration_hours);
@@ -378,6 +389,127 @@ classdef EnhancedMasterController < handle
             fprintf('   ✅ Overall network success rate: %.1f%%\n', network_results.overall.success_rate_percent);
             fprintf('   💰 Total revenue: %.0f BDT\n', network_results.overall.total_revenue_bdt);
             fprintf('✅ Network testing completed.\n');
+        end
+        
+        function metro_results = simulate_dual_gate_metro(obj, dual_gate_system, num_passengers, duration_hours)
+            % Simulate dual gate metro system with realistic entry/exit process
+            
+            metro_results = struct();
+            
+            % Generate realistic passenger data
+            passengers = obj.generate_metro_passengers(num_passengers);
+            
+            successful_entries = 0;
+            successful_exits = 0;
+            total_revenue = 0;
+            failed_transactions = 0;
+            transaction_times = [];
+            
+            % Entry phase simulation
+            fprintf('      🚇 Simulating %d passengers entering through dual gates...\n', length(passengers));
+            for i = 1:length(passengers)
+                passenger = passengers(i);
+                
+                % Simulate entry through dual gate system
+                entry_result = dual_gate_system.simulate_passenger_entry(...
+                    passenger.id, passenger.uwb_device, passenger.payment_method);
+                
+                if entry_result.success
+                    successful_entries = successful_entries + 1;
+                    total_revenue = total_revenue + entry_result.transaction_details.fare_amount;
+                    transaction_times = [transaction_times, entry_result.transaction_details.transaction_time];
+                else
+                    failed_transactions = failed_transactions + 1;
+                end
+            end
+            
+            % Simulate journey time (compressed for simulation)
+            pause(0.2);
+            
+            % Exit phase simulation
+            active_passenger_ids = keys(dual_gate_system.active_passengers);
+            fprintf('      🚇 Simulating %d passengers exiting through dual gates...\n', length(active_passenger_ids));
+            for i = 1:length(active_passenger_ids)
+                passenger_id = active_passenger_ids{i};
+                
+                % Find original passenger UWB device info
+                original_passenger = passengers([passengers.id] == passenger_id);
+                if ~isempty(original_passenger)
+                    % Simulate exit through dual gate system
+                    exit_result = dual_gate_system.simulate_passenger_exit(...
+                        passenger_id, original_passenger.uwb_device);
+                    
+                    if exit_result.success
+                        successful_exits = successful_exits + 1;
+                        total_revenue = total_revenue + exit_result.fare_calculation.additional_payment;
+                        transaction_times = [transaction_times, exit_result.processing_time];
+                    else
+                        failed_transactions = failed_transactions + 1;
+                    end
+                end
+            end
+            
+            % Calculate results
+            metro_results.total_passengers = num_passengers;
+            metro_results.successful_transactions = successful_entries; % Count entries as main transactions
+            metro_results.successful_entries = successful_entries;
+            metro_results.successful_exits = successful_exits;
+            metro_results.failed_transactions = failed_transactions;
+            metro_results.success_rate = (successful_entries / num_passengers) * 100;
+            metro_results.total_revenue = total_revenue;
+            metro_results.avg_transaction_time = mean(transaction_times) * 1000; % Convert to ms
+            
+            % Get detailed statistics from dual gate system
+            gate_stats = dual_gate_system.get_system_statistics();
+            metro_results.gate_statistics = gate_stats;
+            
+            fprintf('      📊 Metro results: %.1f%% success, %d BDT revenue, %.1fms avg time\n', ...
+                metro_results.success_rate, round(metro_results.total_revenue), metro_results.avg_transaction_time);
+        end
+        
+        function passengers = generate_metro_passengers(obj, num_passengers)
+            % Generate realistic metro passenger data
+            
+            passengers = [];
+            
+            for i = 1:num_passengers
+                passenger = struct();
+                passenger.id = 2000 + i; % Metro passenger IDs start from 2000
+                
+                % UWB device info (98% have devices in metro - higher adoption)
+                if rand() > 0.02
+                    passenger.uwb_device = struct(...
+                        'active', true, ...
+                        'device_id', sprintf('METRO_UWB_%06d', passenger.id), ...
+                        'signal_strength', 88 + randn() * 4 ...
+                    );
+                else
+                    passenger.uwb_device = struct('active', false);
+                end
+                
+                % Payment method (metro has integrated payment system)
+                payment_types = {'metro_card', 'mobile_wallet', 'contactless_card'};
+                passenger_types = {'regular', 'student', 'senior'};
+                type_weights = [0.6, 0.25, 0.15]; % 60% regular, 25% student, 15% senior
+                
+                % Select passenger type based on weights
+                rand_val = rand();
+                if rand_val < type_weights(1)
+                    ptype = 'regular';
+                elseif rand_val < sum(type_weights(1:2))
+                    ptype = 'student';
+                else
+                    ptype = 'senior';
+                end
+                
+                passenger.payment_method = struct(...
+                    'type', payment_types{randi(length(payment_types))}, ...
+                    'balance', 50 + rand() * 150, ... % Random balance 50-200 BDT
+                    'passenger_type', ptype ...
+                );
+                
+                passengers = [passengers; passenger];
+            end
         end
         
         function mode_results = simulate_enhanced_transport_mode(obj, mode, passengers, duration_hours)
