@@ -1,5 +1,5 @@
 % =========================================================================
-% ENHANCED RUN THESIS - COMPLETE INTEGRATION
+% RUN THESIS - COMPLETE INTEGRATION
 % Ultra-Wideband (UWB) Fare Collection for Public Transport
 % Main execution script with all modules integrated
 % =========================================================================
@@ -7,34 +7,34 @@
 function run_thesis()
     clear all; close all; clc;
     
-    fprintf('🎓 ENHANCED UWB THESIS SIMULATION - COMPLETE VERSION\n');
+    fprintf('🎓 UWB THESIS SIMULATION - COMPLETE VERSION\n');
     fprintf('===================================================\n\n');
     
     try
-        % Initialize Enhanced Master Controller
-        fprintf('🚀 Initializing Enhanced Master Controller...\n');
+        % Initialize Master Controller
+        fprintf('🚀 Initializing Master Controller...\n');
         controller = EnhancedMasterController();
         
-        % Run Complete Enhanced Simulation
-        fprintf('⚡ Running enhanced complete simulation...\n');
+        % Run Complete Simulation
+        fprintf('⚡ Running complete simulation...\n');
         results = controller.run_complete_simulation(1000, 8);
         
-        % Generate Enhanced Visualizations
-        fprintf('📊 Creating enhanced visualizations...\n');
+        % Generate Visualizations
+        fprintf('📊 Creating visualizations...\n');
         controller.create_all_enhanced_visualizations();
         
-        % Generate Enhanced Reports
-        fprintf('📋 Generating enhanced reports...\n');
+        % Generate Reports
+        fprintf('📋 Generating reports...\n');
         controller.generate_enhanced_thesis_report();
         
         % Run Additional Analysis
-        fprintf('🔬 Running additional enhanced analysis...\n');
+        fprintf('🔬 Running additional analysis...\n');
         controller.run_enhanced_analysis();
         
-        fprintf('\n🎉 ENHANCED THESIS SIMULATION COMPLETED SUCCESSFULLY!\n');
+        fprintf('\n🎉 THESIS SIMULATION COMPLETED SUCCESSFULLY!\n');
         
     catch main_error
-        fprintf('❌ ENHANCED SIMULATION ERROR: %s\n', main_error.message);
+        fprintf('❌ MULATION ERROR: %s\n', main_error.message);
         fprintf('📍 Falling back to original simulation...\n');
         
         % Fallback to original simulation
