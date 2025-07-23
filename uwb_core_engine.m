@@ -329,7 +329,7 @@ end
 
 % Example usage and testing function
 function test_uwb_core_engine()
-    fprintf('Testing Enhanced UWB Core Engine...\n');
+    fprintf('Testing UWB Core Engine...\n');
     
     % Define anchor positions (UWB beacons at station)
     anchors = [0, 0; 10, 0; 5, 8; 2, 6]; % 4 anchors in meters

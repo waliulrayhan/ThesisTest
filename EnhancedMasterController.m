@@ -643,7 +643,7 @@ classdef EnhancedMasterController < handle
                     bar(accuracy_data, 'FaceColor', [0.2 0.7 0.9]);
                     set(gca, 'XTickLabel', config_labels);
                     ylabel('Accuracy <5cm (%)');
-                    title('Enhanced Localization Accuracy');
+                    title('Localization Accuracy');
                     ylim([85 100]);
                     
                     for i = 1:length(accuracy_data)
@@ -655,7 +655,7 @@ classdef EnhancedMasterController < handle
                 bar([92, 95, 98], 'FaceColor', [0.2 0.7 0.9]);
                 set(gca, 'XTickLabel', {'5-Anchor', '7-Anchor', '9-Anchor'});
                 ylabel('Accuracy <5cm (%)');
-                title('Enhanced Localization Accuracy');
+                title('Localization Accuracy');
                 ylim([85 100]);
             end
             
@@ -678,7 +678,7 @@ classdef EnhancedMasterController < handle
                 b.CData = colors;
                 set(gca, 'XTickLabel', categories);
                 ylabel('Percentage (%)');
-                title(sprintf('Enhanced Speed Distribution\n(Mean: %.0fms)', mean_time));
+                title(sprintf('Speed Distribution\n(Mean: %.0fms)', mean_time));
             else
                 speed_data = [55, 35, 8, 2];
                 colors = [0.1 0.8 0.1; 0.3 0.7 0.3; 0.8 0.8 0.1; 0.8 0.3 0.1];
@@ -686,7 +686,7 @@ classdef EnhancedMasterController < handle
                 b.CData = colors;
                 set(gca, 'XTickLabel', {'<50ms', '50-100ms', '100-150ms', '>150ms'});
                 ylabel('Percentage (%)');
-                title('Enhanced Speed Distribution (Mean: 75ms)');
+                title('Speed Distribution (Mean: 75ms)');
             end
             
             % System capacity performance
@@ -709,14 +709,14 @@ classdef EnhancedMasterController < handle
                         bar([98.5, 99.8, 95.5, 94.5], 'FaceColor', [0.8 0.2 0.2]);
                         set(gca, 'XTickLabel', {'Replay', 'MITM', 'Spoofing', 'Jamming'});
                         ylabel('Block Rate (%)');
-                        title('Enhanced Attack Defense');
+                        title('Attack Defense');
                         ylim([90 100]);
                     case 5
                         % Network performance
                         bar([98.5, 96.8, 97.2], 'FaceColor', [0.2 0.8 0.2]);
                         set(gca, 'XTickLabel', {'Metro', 'Bus', 'Launch'});
                         ylabel('Success Rate (%)');
-                        title('Enhanced Multi-Modal Performance');
+                        title('Multi-Modal Performance');
                         ylim([95 100]);
                     case 6
                         % Technology comparison
