@@ -18,7 +18,7 @@ fprintf('   📍 Exit Zone: 4 UWB anchors for fare calculation\n');
 fprintf('   💳 Payment system: Metro card, mobile wallet, contactless\n\n');
 
 %% Metro System Simulation
-fprintf('� METRO SYSTEM SIMULATION (%d passengers)\n', num_passengers);
+fprintf('🚇 METRO SYSTEM SIMULATION (%d passengers)\n', num_passengers);
 fprintf('----------------------------------------\n');
 
 % Generate passenger data
@@ -43,10 +43,11 @@ for i = 1:length(passengers)
         entry_times = [entry_times, result.total_time];
         fprintf('   ✅ Passenger %d: ENTRY SUCCESSFUL (%.2fs)\n', ...
             passenger.id, result.total_time);
-        fprintf('       🎯 Zone Detection: Entry-Zone-1 → UWB-Anchor-Set-A → Entry-Zone-2\n');
-        fprintf('       📡 UWB Device: %s (Signal: %.1fdBm)\n', ...
+        fprintf('       🎯 Zone Detection: Entry-Zone-1 → Gate %d Open → Entry-Zone-2\n', result.gate_used);
+        fprintf('       📡 UWB Anchors Used: Zone-1 [A1,A2,A3,A4] → Zone-2 [A5,A6,A7,A8]\n');
+        fprintf('       📱 UWB Device: %s (Signal: %.1fdBm)\n', ...
             passenger.uwb_device.device_id, passenger.uwb_device.signal_strength);
-        fprintf('       � Passenger Entry Logged - No payment processing\n');
+        fprintf('       💰 Passenger Entry Logged - No payment processing\n');
     else
         failed_entries = failed_entries + 1;
         % Handle different error message field names
@@ -62,10 +63,12 @@ for i = 1:length(passengers)
         fprintf('       🎯 Zone Detection: Failed at entry zone validation\n');
         if passenger.uwb_device.active
             fprintf('       📡 UWB Device: %s\n', passenger.uwb_device.device_id);
+            fprintf('       📡 UWB Anchors: Zone-1 [A1,A2,A3,A4] detection failed\n');
         else
             fprintf('       📡 UWB Device: INACTIVE - No device detected\n');
+            fprintf('       📡 UWB Anchors: No anchor communication possible\n');
         end
-        fprintf('       � Entry logging failed - No passenger tracking\n');
+        fprintf('       💰 Entry logging failed - No passenger tracking\n');
     end
     
     % Small delay to simulate realistic entry timing
@@ -128,12 +131,13 @@ for i = 1:length(active_passengers)
                 
                 fprintf('   ✅ Passenger %d: EXIT SUCCESS (%.2fs, %.0f BDT DEDUCTED)\n', ...
                     passenger_id, result.total_time, total_fare);
-                fprintf('       🎯 Zone Detection: Exit-Zone-1 → UWB-Anchor-Set-B → Exit-Zone-2\n');
-                fprintf('       📡 UWB Device: %s (Journey Distance: %.1fkm)\n', ...
+                fprintf('       🎯 Zone Detection: Exit-Zone-1 → Gate %d Open → Exit-Zone-2\n', result.gate_used);
+                fprintf('       📡 UWB Anchors Used: Zone-1 [A9,A10,A11,A12] → Zone-2 [A13,A14,A15,A16]\n');
+                fprintf('       📱 UWB Device: %s (Journey Distance: %.1fkm)\n', ...
                     original_passenger.uwb_device.device_id, result.fare_calculation.distance_km);
                 fprintf('       💰 Fare Calculation: Base(%.0f) + Distance(%.0f) = %.0f BDT\n', ...
                     total_fare - additional_payment, additional_payment, total_fare);
-                fprintf('       � Payment Deducted: %.0f BDT from UWB smartphone wallet\n', ...
+                fprintf('       💳 Payment Deducted: %.0f BDT from UWB smartphone wallet\n', ...
                     total_fare);
             else
                 failed_exits = failed_exits + 1;
@@ -150,10 +154,12 @@ for i = 1:length(active_passengers)
                 fprintf('       🎯 Zone Detection: Failed at exit zone validation\n');
                 if original_passenger.uwb_device.active
                     fprintf('       📡 UWB Device: %s\n', original_passenger.uwb_device.device_id);
+                    fprintf('       📡 UWB Anchors: Zone-1 [A9,A10,A11,A12] detection failed\n');
                 else
                     fprintf('       📡 UWB Device: INACTIVE - No device detected\n');
+                    fprintf('       📡 UWB Anchors: No anchor communication possible\n');
                 end
-                fprintf('       � Payment Status: No deduction (exit failed)\n');
+                fprintf('       💳 Payment Status: No deduction (exit failed)\n');
             end
         catch exit_error
             failed_exits = failed_exits + 1;
@@ -162,10 +168,12 @@ for i = 1:length(active_passengers)
             fprintf('       🎯 Zone Detection: System error during exit process\n');
             if original_passenger.uwb_device.active
                 fprintf('       📡 UWB Device: %s\n', original_passenger.uwb_device.device_id);
+                fprintf('       📡 UWB Anchors: System communication error\n');
             else
                 fprintf('       📡 UWB Device: INACTIVE - No device detected\n');
+                fprintf('       📡 UWB Anchors: No anchor communication possible\n');
             end
-            fprintf('       � Payment Status: No deduction (system error)\n');
+            fprintf('       💳 Payment Status: No deduction (system error)\n');
         end
     end
     
@@ -239,10 +247,10 @@ fprintf('   Data encryption: End-to-end\n\n');
 
 fprintf('✅ Dual gate metro system demonstration completed!\n');
 fprintf('🎯 Zone-based dual gate system successfully demonstrated:\n');
-fprintf('   • Entry zone: UWB detection + passenger tracking (NO payment)\n');
+fprintf('   • Entry zone: UWB detection with anchors [A1,A2,A3,A4] → Gate opens → Zone-2 [A5,A6,A7,A8] (NO payment)\n');
 fprintf('   • Transit zone: Secure passenger tracking with journey calculation\n');
-fprintf('   • Exit zone: UWB detection + fare calculation + smartphone wallet payment\n');
-fprintf('   • Sub-centimeter UWB accuracy throughout the process\n');
+fprintf('   • Exit zone: UWB detection with anchors [A9,A10,A11,A12] → Gate opens → Zone-2 [A13,A14,A15,A16] + payment\n');
+fprintf('   • Sub-centimeter UWB accuracy with 16 unique anchors throughout the process\n');
 fprintf('   • Modern metro model: Entry tracking + exit payment via UWB smartphone\n\n');
 
 fprintf('📋 FINAL SUMMARY:\n');
@@ -261,24 +269,33 @@ function passengers = generate_demo_passengers(num_passengers)
     
     for i = 1:num_passengers
         passenger = struct();
-        passenger.id = 3000 + i; % Demo passenger IDs
+        % Generate realistic passenger IDs (metro card numbers, mobile wallet IDs, etc.)
+        id_types = {'MC', 'MW', 'CC'}; % Metro Card, Mobile Wallet, Contactless Card
+        id_type = id_types{randi(3)};
+        
+        if strcmp(id_type, 'MC')
+            passenger.id = 100000000 + randi(899999999); % 9-digit metro card number
+        elseif strcmp(id_type, 'MW')
+            passenger.id = 200000000 + randi(799999999); % Mobile wallet ID
+        else
+            passenger.id = 400000000 + randi(599999999); % Contactless card ID
+        end
         
         % UWB device (95% adoption rate in metro)
         if rand() > 0.05
             passenger.uwb_device = struct(...
                 'active', true, ...
-                'device_id', sprintf('DEMO_UWB_%06d', passenger.id), ...
+                'device_id', sprintf('UWB_%s_%010d', id_type, passenger.id), ...
                 'signal_strength', 85 + randn() * 5 ...
             );
         else
             passenger.uwb_device = struct('active', false);
         end
         
-        % Payment method distribution
-        rand_val = rand();
-        if rand_val < 0.5
+        % Payment method distribution based on ID type
+        if strcmp(id_type, 'MC')
             payment_type = 'metro_card';
-        elseif rand_val < 0.85
+        elseif strcmp(id_type, 'MW')
             payment_type = 'mobile_wallet';
         else
             payment_type = 'contactless_card';
@@ -294,9 +311,18 @@ function passengers = generate_demo_passengers(num_passengers)
             ptype = 'senior';
         end
         
+        % Generate realistic balance based on payment type
+        if strcmp(payment_type, 'metro_card')
+            balance = 50 + rand() * 150; % Metro cards: 50-200 BDT
+        elseif strcmp(payment_type, 'mobile_wallet')
+            balance = 100 + rand() * 400; % Mobile wallets: 100-500 BDT
+        else
+            balance = 500 + rand() * 1000; % Credit/debit cards: 500-1500 BDT
+        end
+        
         passenger.payment_method = struct(...
             'type', payment_type, ...
-            'balance', 100 + rand() * 200, ... % Random balance 100-300 BDT
+            'balance', balance, ...
             'passenger_type', ptype ...
         );
         

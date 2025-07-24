@@ -79,36 +79,36 @@ classdef DualGateMetroSystem < handle
         function setup_uwb_anchors(obj)
             % Setup UWB anchors for each zone in entry and exit areas
             
-            % Entry area - Zone 1 anchors (before gate)
+            % Entry area - Zone 1 anchors (before gate) - Anchors A1-A4
             obj.zone1_anchors_entry = [
-                0, 0;      % Anchor 1 - Corner
-                3, 0;      % Anchor 2 - Opposite corner
-                0, 2;      % Anchor 3 - Back corner
-                3, 2       % Anchor 4 - Far corner
+                0, 0;      % Anchor A1 - Corner
+                3, 0;      % Anchor A2 - Opposite corner
+                0, 2;      % Anchor A3 - Back corner
+                3, 2       % Anchor A4 - Far corner
             ];
             
-            % Entry area - Zone 2 anchors (after gate)
+            % Entry area - Zone 2 anchors (after gate) - Anchors A5-A8
             obj.zone2_anchors_entry = [
-                4, 0;      % Anchor 5 - Gate exit side
-                7, 0;      % Anchor 6 - Far side
-                4, 2;      % Anchor 7 - Back of zone 2
-                7, 2       % Anchor 8 - Far back corner
+                4, 0;      % Anchor A5 - Gate exit side
+                7, 0;      % Anchor A6 - Far side
+                4, 2;      % Anchor A7 - Back of zone 2
+                7, 2       % Anchor A8 - Far back corner
             ];
             
-            % Exit area - Zone 1 anchors (platform side)
+            % Exit area - Zone 1 anchors (platform side) - Anchors A9-A12
             obj.zone1_anchors_exit = [
-                10, 0;     % Anchor 9 - Platform corner
-                13, 0;     % Anchor 10 - Platform far
-                10, 2;     % Anchor 11 - Platform back
-                13, 2      % Anchor 12 - Platform far back
+                10, 0;     % Anchor A9 - Platform corner
+                13, 0;     % Anchor A10 - Platform far
+                10, 2;     % Anchor A11 - Platform back
+                13, 2      % Anchor A12 - Platform far back
             ];
             
-            % Exit area - Zone 2 anchors (after exit gate)
+            % Exit area - Zone 2 anchors (after exit gate) - Anchors A13-A16
             obj.zone2_anchors_exit = [
-                14, 0;     % Anchor 13 - Exit area
-                17, 0;     % Anchor 14 - Exit far
-                14, 2;     % Anchor 15 - Exit back
-                17, 2      % Anchor 16 - Exit far back
+                14, 0;     % Anchor A13 - Exit area
+                17, 0;     % Anchor A14 - Exit far
+                14, 2;     % Anchor A15 - Exit back
+                17, 2      % Anchor A16 - Exit far back
             ];
             
             % Detection parameters
