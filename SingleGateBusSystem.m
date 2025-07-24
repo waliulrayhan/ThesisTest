@@ -43,7 +43,7 @@ classdef SingleGateBusSystem < handle
             obj.initialize_bus_state();
             
             fprintf('🚌 Single Gate Bus System initialized\n');
-            fprintf('   Gate: 1 (Entry/Exit) | Zones: 2 (Door + Interior)\n');
+            fprintf('   Zone: 1 (Door + Entry/Exit) | Zone: 2 (Interior)\n');
         end
         
         function initialize_gate_system(obj)
@@ -180,8 +180,8 @@ classdef SingleGateBusSystem < handle
                     return;
                 end
                 
-                fprintf('    💳 Payment authorized: %.2f BDT\n', payment_result.amount);
-                fprintf('    ⚡ Gate opened for boarding\n');
+                % fprintf('    💳 Payment authorized: %.2f BDT\n', payment_result.amount);
+                % fprintf('    ⚡ Gate opened for boarding\n');
                 
                 % Simulate boarding time
                 pause(0.1 + rand() * 0.5);  % 0.1-0.6 seconds
@@ -191,7 +191,8 @@ classdef SingleGateBusSystem < handle
                 if zone2_result.detected
                     result.zones_detected{end+1} = 'Bus-Interior-Zone';
                     fprintf('    📍 Zone 2 detection successful (Accuracy: %.2fcm)\n', zone2_result.accuracy * 100);
-                    
+                    fprintf('    ✅ Passenger successfully entered bus\n');
+
                     % Update bus state to IN_CABIN
                     obj.update_bus_state('IN_CABIN');
                     
@@ -274,10 +275,10 @@ classdef SingleGateBusSystem < handle
                 additional_payment = 0;
                 if fare_calculation.additional_payment > 0
                     additional_payment = fare_calculation.additional_payment;
-                    fprintf('    💳 Additional payment processed: %.2f BDT\n', additional_payment);
+                    % fprintf('    💳 Additional payment processed: %.2f BDT\n', additional_payment);
                 end
                 
-                fprintf('    🚪 Gate opened for alighting\n');
+                % fprintf('    🚪 Gate opened for alighting\n');
                 
                 % Simulate alighting time
                 pause(0.1 + rand() * 0.3);  % 0.1-0.4 seconds

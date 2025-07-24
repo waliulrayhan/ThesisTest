@@ -15,7 +15,7 @@ num_passengers = 12;  % Realistic number for bus demonstration
 fprintf('   ✅ System initialized with zone-based detection\n');
 fprintf('   📍 Zone 1: Door area (4 UWB anchors for boarding/alighting)\n');
 fprintf('   📍 Zone 2: Interior bus (4 UWB anchors for passenger tracking)\n');
-fprintf('   💳 Payment system: Bus card, mobile wallet, contactless, cash\n\n');
+% fprintf('   💳 Payment system: Bus card, mobile wallet, contactless, cash\n\n');
 
 %% Bus System Simulation
 fprintf('🚌 BUS SYSTEM SIMULATION (%d passengers)\n', num_passengers);
@@ -41,15 +41,15 @@ for i = 1:length(passengers)
     
     if result.success
         successful_boardings = successful_boardings + 1;
-        total_revenue = total_revenue + result.payment_amount;
+        % Boarding only tracks passenger - no payment processing
         boarding_times = [boarding_times, result.total_time];
         fprintf('   ✅ Passenger %d: BOARDING SUCCESSFUL (%.2fs)\n', ...
             passenger.id, result.total_time);
         fprintf('       🎯 Zone Detection: %s\n', strjoin(result.zones_detected, ' → '));
-        fprintf('       📡 UWB Device: %s (Signal: %.1fdBm)\n', ...
+        fprintf('       📡 UWB Anchors Used: Door [B1,B2,B3,B4] → Interior [B5,B6,B7,B8]\n');
+        fprintf('       📱 UWB Device: %s (Signal: %.1fdBm)\n', ...
             passenger.uwb_device.device_id, passenger.uwb_device.signal_strength);
-        fprintf('       💳 Payment: %.2f BDT via %s (%s)\n', ...
-            result.payment_amount, passenger.payment_method.type, passenger.payment_method.passenger_type);
+        fprintf('       � Passenger Boarding Logged - No payment processing\n');
         fprintf('       🚌 Bus State: %s\n', bus_system.bus_state);
     else
         failed_boardings = failed_boardings + 1;
@@ -66,10 +66,12 @@ for i = 1:length(passengers)
         fprintf('       🎯 Zone Detection: Failed during boarding process\n');
         if passenger.uwb_device.active
             fprintf('       📡 UWB Device: %s\n', passenger.uwb_device.device_id);
+            fprintf('       📡 UWB Anchors: Door [B1,B2,B3,B4] detection failed\n');
         else
             fprintf('       📡 UWB Device: INACTIVE - No device detected\n');
+            fprintf('       📡 UWB Anchors: No anchor communication possible\n');
         end
-        fprintf('       💳 Payment Status: No charge (boarding failed)\n');
+        fprintf('       � Boarding logging failed - No passenger tracking\n');
     end
     
     % Small delay to simulate realistic boarding timing
@@ -85,7 +87,7 @@ fprintf('   Successful boardings: %d (%.1f%%)\n', ...
     successful_boardings, (successful_boardings / num_passengers) * 100);
 fprintf('   Failed boardings: %d (%.1f%%)\n', ...
     failed_boardings, (failed_boardings / num_passengers) * 100);
-fprintf('   Revenue from boarding: %.2f BDT\n', total_revenue);
+fprintf('   Revenue from boarding: 0 BDT (Boarding tracking only - no payment)\n');
 if ~isempty(boarding_times)
     fprintf('   Average boarding time: %.2f seconds\n', mean(boarding_times));
 end
@@ -106,7 +108,6 @@ active_passenger_ids = keys(bus_system.active_passengers);
 successful_alightings = 0;
 failed_alightings = 0;
 alighting_times = [];
-additional_revenue = 0;
 
 for i = 1:length(active_passenger_ids)
     passenger_id = active_passenger_ids{i};
@@ -124,24 +125,22 @@ for i = 1:length(active_passenger_ids)
             if result.success
                 successful_alightings = successful_alightings + 1;
                 alighting_times = [alighting_times, result.total_time];
-                additional_revenue = additional_revenue + result.additional_payment;
                 
+                % Fare is ONLY deducted at exit based on journey distance/time
                 total_fare = result.fare_calculation.total_fare;
                 distance_km = result.fare_calculation.distance_km;
+                total_revenue = total_revenue + total_fare; % Total fare collected at exit
                 
-                fprintf('   ✅ Passenger %d: ALIGHTING SUCCESS (%.2fs)\n', ...
-                    passenger_id, result.total_time);
+                fprintf('   ✅ Passenger %d: ALIGHTING SUCCESS (%.2fs, %.0f BDT DEDUCTED)\n', ...
+                    passenger_id, result.total_time, total_fare);
                 fprintf('       🎯 Zone Detection: %s\n', strjoin(result.zones_detected, ' → '));
-                fprintf('       📡 UWB Device: %s (Trip Distance: %.1fkm)\n', ...
+                fprintf('       📡 UWB Anchors Used: Interior [B5,B6,B7,B8] → Door [B1,B2,B3,B4]\n');
+                fprintf('       📱 UWB Device: %s (Trip Distance: %.1fkm)\n', ...
                     original_passenger.uwb_device.device_id, distance_km);
-                fprintf('       💰 Fare Calculation: Base(%.2f) + Distance(%.2f) = %.2f BDT\n', ...
+                fprintf('       💰 Fare Calculation: Base(%.0f) + Distance(%.0f) = %.0f BDT\n', ...
                     result.fare_calculation.base_fare, result.fare_calculation.distance_charge, total_fare);
-                if result.additional_payment > 0
-                    fprintf('       💳 Additional Payment: %.2f BDT from UWB smartphone wallet\n', ...
-                        result.additional_payment);
-                else
-                    fprintf('       💳 No additional payment required\n');
-                end
+                fprintf('       💳 Payment Deducted: %.0f BDT from UWB smartphone wallet\n', ...
+                    total_fare);
                 fprintf('       🚌 Bus State: %s\n', bus_system.bus_state);
             else
                 failed_alightings = failed_alightings + 1;
@@ -158,10 +157,12 @@ for i = 1:length(active_passenger_ids)
                 fprintf('       🎯 Zone Detection: Failed during alighting process\n');
                 if original_passenger.uwb_device.active
                     fprintf('       📡 UWB Device: %s\n', original_passenger.uwb_device.device_id);
+                    fprintf('       📡 UWB Anchors: Interior [B5,B6,B7,B8] or Door [B1,B2,B3,B4] detection failed\n');
                 else
                     fprintf('       📡 UWB Device: INACTIVE - No device detected\n');
+                    fprintf('       📡 UWB Anchors: No anchor communication possible\n');
                 end
-                fprintf('       💳 Payment Status: No additional charge (alighting failed)\n');
+                fprintf('       💳 Payment Status: No deduction (alighting failed)\n');
             end
         catch alighting_error
             failed_alightings = failed_alightings + 1;
@@ -170,10 +171,12 @@ for i = 1:length(active_passenger_ids)
             fprintf('       🎯 Zone Detection: System error during alighting process\n');
             if original_passenger.uwb_device.active
                 fprintf('       📡 UWB Device: %s\n', original_passenger.uwb_device.device_id);
+                fprintf('       📡 UWB Anchors: System communication error\n');
             else
                 fprintf('       📡 UWB Device: INACTIVE - No device detected\n');
+                fprintf('       📡 UWB Anchors: No anchor communication possible\n');
             end
-            fprintf('       💳 Payment Status: No additional charge (system error)\n');
+            fprintf('       💳 Payment Status: No deduction (system error)\n');
         end
     end
     
@@ -183,7 +186,7 @@ end
 fprintf('\n');
 
 %% Final Statistics
-total_system_revenue = total_revenue + additional_revenue;
+total_system_revenue = total_revenue;
 
 fprintf('📈 BUS SYSTEM RESULTS\n');
 fprintf('==============================\n');
@@ -196,11 +199,9 @@ if successful_boardings > 0
 else
     fprintf('Alighting Success Rate: N/A (No successful boardings)\n');
 end
-fprintf('Total Revenue: %.2f BDT\n', total_system_revenue);
-fprintf('  - Boarding Revenue: %.2f BDT\n', total_revenue);
-fprintf('  - Distance-based Additional: %.2f BDT\n', additional_revenue);
-if successful_boardings > 0
-    fprintf('Average Fare Per Passenger: %.2f BDT\n', total_system_revenue / successful_boardings);
+fprintf('Total Revenue: %.0f BDT (All collected at ALIGHTING only)\n', total_system_revenue);
+if successful_alightings > 0
+    fprintf('Average Fare Per Passenger: %.1f BDT\n', total_system_revenue / successful_alightings);
 end
 if ~isempty(boarding_times)
     fprintf('Average Boarding Time: %.2f seconds\n', mean(boarding_times));
@@ -263,10 +264,10 @@ fprintf('   Data encryption: End-to-end\n\n');
 
 fprintf('✅ Single gate bus system demonstration completed!\n');
 fprintf('🎯 Zone-based single gate system successfully demonstrated:\n');
-fprintf('   • Zone 1 (Door): UWB detection + boarding/alighting control\n');
-fprintf('   • Zone 2 (Interior): Passenger tracking during trip\n');
-fprintf('   • Pay-as-you-board model with distance-based additional charges\n');
-fprintf('   • Sub-centimeter UWB accuracy for precise passenger detection\n');
+fprintf('   • Zone 1 (Door): UWB detection with anchors [B1,B2,B3,B4] + boarding/alighting control (NO payment)\n');
+fprintf('   • Zone 2 (Interior): UWB tracking with anchors [B5,B6,B7,B8] during trip\n');
+fprintf('   • Modern bus model: Boarding tracking + alighting payment via UWB smartphone\n');
+fprintf('   • Sub-centimeter UWB accuracy with 8 unique anchors for precise passenger detection\n');
 fprintf('   • State machine management for bus operations\n\n');
 
 fprintf('📋 FINAL SUMMARY:\n');
@@ -274,7 +275,7 @@ fprintf('   Passenger Boardings: %d/%d passengers (%.1f%% success)\n', ...
     successful_boardings, num_passengers, (successful_boardings/num_passengers)*100);
 fprintf('   Passenger Alightings: %d/%d passengers (%.1f%% success)\n', ...
     successful_alightings, successful_boardings, (successful_alightings/max(1,successful_boardings))*100);
-fprintf('   Total Fare Revenue: %.2f BDT (Boarding + Distance-based)\n', total_system_revenue);
+fprintf('   Total Fare Revenue: %.0f BDT (Collected via UWB smartphone wallet)\n', total_system_revenue);
 fprintf('   System demonstrates modern UWB-based bus fare collection!\n\n');
 
 %% Helper Function
@@ -285,26 +286,37 @@ function passengers = generate_bus_passengers(num_passengers)
     
     for i = 1:num_passengers
         passenger = struct();
-        passenger.id = 4000 + i; % Bus passenger IDs
+        % Generate realistic passenger IDs for bus system
+        id_types = {'BC', 'MW', 'CC', 'CA'}; % Bus Card, Mobile Wallet, Contactless Card, Cash
+        id_type = id_types{randi(4)};
+        
+        if strcmp(id_type, 'BC')
+            passenger.id = 300000000 + randi(699999999); % 9-digit bus card number
+        elseif strcmp(id_type, 'MW')
+            passenger.id = 200000000 + randi(799999999); % Mobile wallet ID
+        elseif strcmp(id_type, 'CC')
+            passenger.id = 400000000 + randi(599999999); % Contactless card ID
+        else
+            passenger.id = 500000000 + randi(499999999); % Cash transaction ID
+        end
         
         % UWB device (92% adoption rate in buses)
         if rand() > 0.08
             passenger.uwb_device = struct(...
                 'active', true, ...
-                'device_id', sprintf('BUS_UWB_%06d', passenger.id), ...
+                'device_id', sprintf('BUS_UWB_%s_%010d', id_type, passenger.id), ...
                 'signal_strength', 80 + randn() * 7 ...
             );
         else
             passenger.uwb_device = struct('active', false);
         end
         
-        % Payment method distribution for bus
-        rand_val = rand();
-        if rand_val < 0.35
+        % Payment method distribution based on ID type
+        if strcmp(id_type, 'BC')
             payment_type = 'bus_card';
-        elseif rand_val < 0.65
+        elseif strcmp(id_type, 'MW')
             payment_type = 'mobile_wallet';
-        elseif rand_val < 0.85
+        elseif strcmp(id_type, 'CC')
             payment_type = 'contactless_card';
         else
             payment_type = 'cash';
@@ -320,9 +332,20 @@ function passengers = generate_bus_passengers(num_passengers)
             ptype = 'senior';
         end
         
+        % Generate realistic balance based on payment type
+        if strcmp(payment_type, 'bus_card')
+            balance = 30 + rand() * 120; % Bus cards: 30-150 BDT
+        elseif strcmp(payment_type, 'mobile_wallet')
+            balance = 80 + rand() * 320; % Mobile wallets: 80-400 BDT
+        elseif strcmp(payment_type, 'contactless_card')
+            balance = 200 + rand() * 800; % Credit/debit cards: 200-1000 BDT
+        else
+            balance = 1000; % Cash payment - always sufficient
+        end
+        
         passenger.payment_method = struct(...
             'type', payment_type, ...
-            'balance', 50 + rand() * 150, ... % Random balance 50-200 BDT
+            'balance', balance, ...
             'passenger_type', ptype ...
         );
         
