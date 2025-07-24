@@ -185,84 +185,89 @@ classdef RealTimePerformanceVisualizer < handle
         function start_monitoring(obj, monitoring_duration)
             % Start real-time monitoring for specified duration
             if nargin < 2
-                monitoring_duration = 60;  % Default 60 seconds
+                monitoring_duration = 30;  % Default 30 seconds
             end
             
             fprintf('🔄 Starting real-time monitoring for %d seconds...\n', monitoring_duration);
             
-            start_time = tic;
-            update_count = 0;
-            
-            while toc(start_time) < monitoring_duration
-                % Collect current performance data
-                current_data = obj.collect_performance_data();
+            % Generate data for exactly 30 seconds (1 data point per second)
+            for second = 1:monitoring_duration
+                % Collect current performance data with time-based patterns
+                current_data = obj.collect_performance_data(second);
                 
                 % Update history
-                obj.update_performance_history(current_data);
+                obj.update_performance_history(current_data, second);
                 
                 % Update plots
                 obj.update_realtime_plots();
                 
-                % Update counter and pause
-                update_count = update_count + 1;
-                
-                % Display progress every 10 updates
-                if mod(update_count, 10) == 0
-                    fprintf('   📊 Updates: %d | Elapsed: %.1fs\n', ...
-                            update_count, toc(start_time));
+                % Display progress every 5 seconds
+                if mod(second, 5) == 0
+                    fprintf('   📊 Updates: %d | Elapsed: %ds\n', second, second);
                 end
                 
-                pause(obj.update_interval);
+                % Simulate real-time by pausing 1 second
+                pause(1.0);
             end
             
-            fprintf('✅ Real-time monitoring completed after %d updates\n', update_count);
+            fprintf('✅ Real-time monitoring completed after %d updates\n', monitoring_duration);
             obj.create_monitoring_summary();
         end
         
-        function current_data = collect_performance_data(obj)
+        function current_data = collect_performance_data(obj, time_seconds)
             % Collect current performance metrics from systems
             current_data = struct();
             
-            % Simulate realistic performance data with some variation
-            base_time = now;
+            % Use time_seconds for predictable patterns (default to current time if not provided)
+            if nargin < 2
+                time_seconds = mod(now * 24 * 3600, 30);  % Default to current time mod 30
+            end
             
-            % Success rate (with realistic variation)
-            success_base = 97.5;
-            success_variation = 1.5 * sin(base_time * 1000) + randn() * 0.5;
-            current_data.success_rate = max(95, min(99.5, success_base + success_variation));
+            % Success rate (with realistic time-based variation)
+            success_base = 98.5;
+            success_variation = 1.2 * sin(time_seconds * 0.3) + 0.5 * sin(time_seconds * 0.8) + (rand() - 0.5) * 0.8;
+            current_data.success_rate = max(96, min(99.5, success_base + success_variation));
             
-            % Transaction time (with rush hour effects)
+            % Transaction time (with rush hour effects and periodic patterns)
             time_base = 85;  % ms
-            rush_hour_factor = 1 + 0.3 * abs(sin(base_time * 100));
-            time_variation = randn() * 15;
-            current_data.transaction_time = max(50, time_base * rush_hour_factor + time_variation);
+            rush_pattern = 1 + 0.25 * sin(time_seconds * 0.2) + 0.15 * cos(time_seconds * 0.5);
+            time_variation = (rand() - 0.5) * 25;
+            current_data.transaction_time = max(50, min(150, time_base * rush_pattern + time_variation));
             
-            % System throughput
+            % System throughput (with capacity variations)
             throughput_base = 65;  % passengers/minute
-            load_factor = 0.8 + 0.4 * abs(cos(base_time * 80));
-            current_data.throughput = throughput_base * load_factor + randn() * 5;
+            capacity_pattern = 0.85 + 0.3 * cos(time_seconds * 0.15) + 0.15 * sin(time_seconds * 0.7);
+            throughput_noise = (rand() - 0.5) * 8;
+            current_data.throughput = max(40, min(85, throughput_base * capacity_pattern + throughput_noise));
             
-            % Error rate (inversely related to success rate)
-            current_data.error_rate = max(0, min(5, 100 - current_data.success_rate + randn() * 0.3));
+            % Error rate (inversely related to success rate with some independence)
+            base_error = 1.5;
+            error_pattern = 0.8 * sin(time_seconds * 0.4) + 0.3 * cos(time_seconds * 1.2);
+            current_data.error_rate = max(0, min(4, base_error + error_pattern + (rand() - 0.5) * 0.6));
             
-            % Security score (generally stable with minor variations)
-            security_base = 96.5;
-            security_variation = 0.8 * sin(base_time * 50) + randn() * 0.3;
-            current_data.security_score = max(94, min(99, security_base + security_variation));
+            % Security score (generally stable with minor periodic variations)
+            security_base = 96.8;
+            security_pattern = 0.6 * sin(time_seconds * 0.1) + 0.4 * cos(time_seconds * 0.6);
+            current_data.security_score = max(94.5, min(98, security_base + security_pattern + (rand() - 0.5) * 0.5));
             
-            % System load (related to throughput)
-            load_base = (current_data.throughput / 100) * 80;  % Scale to percentage
-            current_data.system_load = max(10, min(95, load_base + randn() * 8));
+            % System load (related to throughput with some delay)
+            load_base = (current_data.throughput / 85) * 70;  % Scale to percentage
+            load_pattern = 15 * sin(time_seconds * 0.25 + 1) + 10 * cos(time_seconds * 0.8);
+            current_data.system_load = max(20, min(90, load_base + load_pattern + (rand() - 0.5) * 8));
             
-            % Add timestamp
-            current_data.timestamp = base_time;
+            % Add timestamp based on monitoring time
+            current_data.timestamp = time_seconds;
         end
         
-        function update_performance_history(obj, current_data)
+        function update_performance_history(obj, current_data, time_seconds)
             % Update performance history with current data
             
-            % Add current timestamp
-            obj.time_stamps = [obj.time_stamps, current_data.timestamp];
+            % Add current timestamp (use provided time_seconds or data timestamp)
+            if nargin >= 3
+                obj.time_stamps = [obj.time_stamps, time_seconds];
+            else
+                obj.time_stamps = [obj.time_stamps, current_data.timestamp];
+            end
             
             % Add current metrics
             obj.performance_history.success_rate = [obj.performance_history.success_rate, current_data.success_rate];
@@ -272,7 +277,7 @@ classdef RealTimePerformanceVisualizer < handle
             obj.performance_history.security_score = [obj.performance_history.security_score, current_data.security_score];
             obj.performance_history.system_load = [obj.performance_history.system_load, current_data.system_load];
             
-            % Limit history to max points
+            % Limit history to max points (keep most recent)
             if length(obj.time_stamps) > obj.max_history_points
                 obj.time_stamps = obj.time_stamps(end-obj.max_history_points+1:end);
                 obj.performance_history.success_rate = obj.performance_history.success_rate(end-obj.max_history_points+1:end);
@@ -291,8 +296,8 @@ classdef RealTimePerformanceVisualizer < handle
                 return;
             end
             
-            % Convert timestamps to relative seconds
-            time_seconds = (obj.time_stamps - obj.time_stamps(1)) * 24 * 3600;
+            % Use time stamps directly as seconds (already set in start_monitoring)
+            time_seconds = obj.time_stamps;
             
             try
                 % Update success rate plot
@@ -612,7 +617,7 @@ classdef RealTimePerformanceVisualizer < handle
             
             % System performance over time
             subplot(2, 2, 3);
-            time_seconds = (obj.time_stamps - obj.time_stamps(1)) * 24 * 3600;
+            time_seconds = obj.time_stamps;  % Use direct time stamps (already in seconds)
             
             plot(time_seconds, obj.performance_history.success_rate, 'g-', 'LineWidth', 2, ...
                  'DisplayName', 'Success Rate');

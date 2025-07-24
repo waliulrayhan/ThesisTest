@@ -123,7 +123,7 @@ if ~isempty(rt_visualizer)
     fprintf('📊 Starting Real-Time Monitoring Demo...\n');
     try
         rt_visualizer.create_realtime_dashboard(dual_gate_system, single_gate_system);
-        rt_visualizer.start_monitoring(20);  % 20 second demo
+        rt_visualizer.start_monitoring(30);  % 30 second demo with full data points
         fprintf('   ✅ Real-time monitoring completed\n');
     catch ME
         fprintf('   ⚠️ Real-time monitoring error: %s\n', ME.message);
